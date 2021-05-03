@@ -94,7 +94,13 @@ export default function HackerNews() {
       {top10Stories.map(({ id, title, kids, time }) => {
         return (
           <Card className={classes.root} key={id}>
-            <CardHeader title={title} subheader={time} />
+            <CardHeader
+              title={title}
+              subheader={new Date(time * 1000).toLocaleDateString('en-IN', {
+                hour: 'numeric',
+                minute: 'numeric',
+              })}
+            />
             <CardActions disableSpacing>
               <IconButton aria-label='comment'>
                 <CommentIcon />
