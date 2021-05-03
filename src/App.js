@@ -1,9 +1,8 @@
-import logo from './logo.svg';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../src/styles.scss';
 // import './App.css';
 
-function App() {pack
+function App() {
   return (
     <div className='App'>
       <header className='App-header'>
