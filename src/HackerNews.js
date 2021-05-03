@@ -1,11 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { makeStyles } from '@material-ui/core/styles';
+import clsx from 'clsx';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardContent from '@material-ui/core/CardContent';
+import CardActions from '@material-ui/core/CardActions';
+import Collapse from '@material-ui/core/Collapse';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import CommentIcon from '@material-ui/icons/Comment';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 const topStoriesUrl = 'https://hacker-news.firebaseio.com/v0/topstories.json';
 
+const useStyles = makeStyles((theme) => ({
+  root: {
+    maxWidth: 1300,
+    margin: 'auto',
+    marginBottom: 10,
+  },
+
+  expand: {
+    transform: 'rotate(0deg)',
+    marginLeft: 'auto',
+    transition: theme.transitions.create('transform', {
+      duration: theme.transitions.duration.shortest,
+    }),
+  },
+  expandOpen: {
+    transform: 'rotate(180deg)',
+  },
+}));
+
 export default function HackerNews() {
+  const classes = useStyles();
   const [top10Stories, setTop10Stories] = useState([]);
   const [top20Comments, setTop20Comments] = useState([]);
+  const [expanded, setExpanded] = React.useState(false);
+
+  const handleExpandClick = (id, kids) => {
+    setExpanded(!expanded);
+    fetchComments(id, kids);
+  };
 
   useEffect(() => {
     const invokeApi = async () => {
@@ -43,24 +80,52 @@ export default function HackerNews() {
   };
 
   //   console.log(top10Stories, ':top10Stories');
-  //   console.log(top20Comments, ':top20Comments');
+//   console.log(top20Comments, ':top20Comments');
   return (
     <React.Fragment>
-      {top10Stories.map(({ id, title, kids }) => {
+      <header className='text-center'>
+        <Typography variant='h3'  gutterBottom>
+          Hacker News Coding Test
+        </Typography>
+      </header>
+      {top10Stories.map(({ id, title, kids, time }) => {
         return (
-          <div key={id}>
-            <div>
-              <span>{title}</span>
-            </div>
-            <div>
-              <span onClick={() => fetchComments(id, kids)}>{`${
-                (kids && kids.length) || 0
-              } comments`}</span>
-            </div>
-            <br />
-          </div>
+          <Card className={classes.root} key={id}>
+            <CardHeader title={title} subheader={time} />
+            <CardActions disableSpacing>
+              <IconButton aria-label='comment'>
+                <CommentIcon />
+              </IconButton>
+              <span>{(kids && kids.length) || 0}</span>
+              <IconButton
+                className={clsx(classes.expand, {
+                  [classes.expandOpen]: expanded,
+                })}
+                onClick={() => handleExpandClick(id, kids)}
+                aria-expanded={expanded}
+                aria-label='show more'
+              >
+                <ExpandMoreIcon />
+              </IconButton>
+            </CardActions>
+            <Collapse in={expanded} timeout='auto' unmountOnExit>
+              <CardContent>
+                <Typography paragraph>Comments:</Typography>
+                {top20Comments
+                  .filter((item) => item.id === id)
+                  .map(getComments)}
+              </CardContent>
+            </Collapse>
+          </Card>
         );
       })}
     </React.Fragment>
   );
 }
+
+const getComments = ({ comments = [] }) =>
+  comments.map(({ text }) => (
+    <>
+      <Typography paragraph>{text}</Typography>
+    </>
+  ));

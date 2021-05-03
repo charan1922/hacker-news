@@ -4,8 +4,7 @@ import HackerNews from './HackerNews';
 
 function App() {
   return (
-    <div className='App'>
-      <header className='App-header'>Hacker News</header>
+    <div>
       <HackerNews />
     </div>
   );
