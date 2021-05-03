@@ -5,6 +5,9 @@ import HackerNews from './HackerNews';
 function App() {
   return (
     <div>
+      <div class='bg'></div>
+      <div class='bg bg2'></div>
+      <div class='bg bg3'></div>
       <HackerNews />
     </div>
   );

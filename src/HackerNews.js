@@ -20,6 +20,7 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: 1300,
     margin: 'auto',
     marginBottom: 10,
+    // backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
 
   expand: {
