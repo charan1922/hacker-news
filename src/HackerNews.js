@@ -11,6 +11,7 @@ import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import CommentIcon from '@material-ui/icons/Comment';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { CircularProgress } from '@material-ui/core';
 
 const topStoriesUrl = 'https://hacker-news.firebaseio.com/v0/topstories.json';
 
@@ -37,7 +38,8 @@ export default function HackerNews() {
   const classes = useStyles();
   const [top10Stories, setTop10Stories] = useState([]);
   const [top20Comments, setTop20Comments] = useState([]);
-  const [expanded, setExpanded] = React.useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [loader, setLoader] = useState(false);
 
   const handleExpandClick = (id, kids) => {
     setExpanded(!expanded);
@@ -46,6 +48,7 @@ export default function HackerNews() {
 
   useEffect(() => {
     const invokeApi = async () => {
+      setLoader(true);
       const { data: topStories } = await axios.get(topStoriesUrl);
 
       const promises = topStories
@@ -57,7 +60,7 @@ export default function HackerNews() {
         );
 
       const top10Stories = await Promise.all(promises);
-
+      setLoader(false);
       setTop10Stories(top10Stories);
     };
 
@@ -80,11 +83,11 @@ export default function HackerNews() {
   };
 
   //   console.log(top10Stories, ':top10Stories');
-//   console.log(top20Comments, ':top20Comments');
+  //   console.log(top20Comments, ':top20Comments');
   return (
     <React.Fragment>
       <header className='text-center'>
-        <Typography variant='h3'  gutterBottom>
+        <Typography variant='h3' gutterBottom>
           Hacker News Coding Test
         </Typography>
       </header>
@@ -119,6 +122,12 @@ export default function HackerNews() {
           </Card>
         );
       })}
+
+      {loader && (
+        <div className='custom-loader'>
+          <CircularProgress size={60} />
+        </div>
+      )}
     </React.Fragment>
   );
 }
