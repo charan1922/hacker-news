@@ -11,7 +11,9 @@ import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import CommentIcon from '@material-ui/icons/Comment';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import { CircularProgress } from '@material-ui/core';
+import { CircularProgress, Grid } from '@material-ui/core';
+import ReactHtmlParser from 'react-html-parser';
+var _ = require('lodash');
 
 const topStoriesUrl = 'https://hacker-news.firebaseio.com/v0/topstories.json';
 
@@ -33,18 +35,28 @@ const useStyles = makeStyles((theme) => ({
   expandOpen: {
     transform: 'rotate(180deg)',
   },
+  commentsSection: {
+    border: '1px solid #ddd',
+    borderRadius: 4,
+    margin: 2,
+    padding: 5,
+  },
 }));
 
 export default function HackerNews() {
   const classes = useStyles();
   const [top10Stories, setTop10Stories] = useState([]);
   const [top20Comments, setTop20Comments] = useState([]);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(null);
   const [loader, setLoader] = useState(false);
 
   const handleExpandClick = (id, kids) => {
-    setExpanded(!expanded);
-    fetchComments(id, kids);
+    if (expanded !== id) {
+      setExpanded(id);
+      fetchComments(id, kids);
+    } else {
+      setExpanded(null);
+    }
   };
 
   useEffect(() => {
@@ -70,6 +82,7 @@ export default function HackerNews() {
 
   const fetchComments = async (id, kids) => {
     if (kids && kids.length) {
+      setLoader(true);
       const promises = kids
         .slice(0, 20)
         .map((id) =>
@@ -79,12 +92,33 @@ export default function HackerNews() {
         );
 
       const comments = await Promise.all(promises);
-      setTop20Comments([...top20Comments, { id, comments }]);
+
+      setLoader(false);
+
+      let tempData = _.cloneDeep(top20Comments);
+      let indexValue = top20Comments.findIndex((i) => i.id === id);
+      let top20CommentsTempData;
+
+      if (indexValue > -1) {
+        top20CommentsTempData = tempData.splice(indexValue, 1, {
+          id,
+          comments,
+        });
+      } else {
+        top20CommentsTempData = [...top20Comments, { id, comments }];
+      }
+
+      setTop20Comments(top20CommentsTempData);
     }
   };
 
-  //   console.log(top10Stories, ':top10Stories');
-  //   console.log(top20Comments, ':top20Comments');
+  const getComments = ({ comments = [] }) =>
+    comments.map(({ text }) => (
+      <Grid item xs={12} className={classes.commentsSection}>
+        {ReactHtmlParser(text)}
+      </Grid>
+    ));
+
   return (
     <React.Fragment>
       <header className='text-center'>
@@ -109,21 +143,23 @@ export default function HackerNews() {
               <span>{(kids && kids.length) || 0}</span>
               <IconButton
                 className={clsx(classes.expand, {
-                  [classes.expandOpen]: expanded,
+                  [classes.expandOpen]: expanded === id,
                 })}
                 onClick={() => handleExpandClick(id, kids)}
-                aria-expanded={expanded}
+                aria-expanded={expanded === id}
                 aria-label='show more'
               >
                 <ExpandMoreIcon />
               </IconButton>
             </CardActions>
-            <Collapse in={expanded} timeout='auto' unmountOnExit>
+            <Collapse in={expanded === id} timeout='auto' unmountOnExit>
               <CardContent>
-                <Typography paragraph>Comments:</Typography>
-                {top20Comments
-                  .filter((item) => item.id === id)
-                  .map(getComments)}
+                <Typography paragraph>Top 20Comments:</Typography>
+                <Grid container spacing={3}>
+                  {top20Comments
+                    .filter((item) => item.id === id)
+                    .map(getComments)}
+                </Grid>
               </CardContent>
             </Collapse>
           </Card>
@@ -138,10 +174,3 @@ export default function HackerNews() {
     </React.Fragment>
   );
 }
-
-const getComments = ({ comments = [] }) =>
-  comments.map(({ text }) => (
-    <>
-      <Typography paragraph>{text}</Typography>
-    </>
-  ));
